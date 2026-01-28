@@ -8,19 +8,50 @@ import { redirect } from "next/navigation";
 import { getToken } from "@/lib/auth-server";
 
 export async function createBlogAction(values:z.infer<typeof postSchema>){
-    const parsed = postSchema.safeParse(values)
-    if(!parsed.success){
-        throw new Error("Something went wrong!");
+
+    try{
+        const parsed = postSchema.safeParse(values)
+        if(!parsed.success){
+            throw new Error("Something went wrong!");
+        }
+
+        const token = await getToken();
+        const imageUrl = await fetchMutation(
+            api.posts.generateImageUploadUrl,
+            {},
+            {token}
+        );
+
+        const uploadResult = await fetch(imageUrl,{
+            method:"POST",
+            headers:{
+                "Content-Type":parsed.data.image.type
+            },
+            body:parsed.data.image
+        })
+
+        if(!uploadResult)
+        {
+            return{
+                error:"Failed to upload image"
+            };
+        }
+
+        const {storageId} = await uploadResult.json();
+
+        await fetchMutation(api.posts.createPost,{
+            body:parsed.data.content,
+            title:parsed.data.title,
+            imageStorageId:storageId
+        },
+        {token}
+        );
+
+    }catch{
+        return{
+            error:"Failed to create post"
+        };
     }
-
-    const token = await getToken();
-
-    await fetchMutation(api.posts.createPost,{
-        body:parsed.data.content,
-        title:parsed.data.title,
-    },
-    {token}
-    );
 
     return redirect("/")
 }

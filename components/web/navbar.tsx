@@ -18,7 +18,7 @@ function Navbar() {
         <div className='flex items-center gap-8 '>
             <Link href="/">
                 <h1 className='text-3xl font-bold '>
-                    Next<span className='text-blue-500'>Pro</span>
+                    Next<span className='text-primary'>Pro</span>
                 </h1>
             </Link>
 
@@ -40,7 +40,7 @@ function Navbar() {
                 </Link>
             </div>
 
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 '>
                 {isLoading ? null: isAuthenticated ? (
                     <Button onClick={()=>authClient.signOut({
                         fetchOptions: {
