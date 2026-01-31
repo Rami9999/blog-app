@@ -10,31 +10,46 @@ import { api } from '@/convex/_generated/api';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from 'convex/react';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React, { useTransition } from 'react'
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import z from 'zod';
+import { useAuth } from '@/lib/use-auth';
 
 function CreateRoute() {
-
+    const { isAuthenticated, isLoading } = useAuth(true)
     const mutation = useMutation(api.posts.createPost);
-    const [isPending,startTransition] = useTransition();
-    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+    
+    // Initialize form unconditionally
     const form = useForm({
-        resolver:zodResolver(postSchema),
-        defaultValues:{
-            title:'',
-            content:'',
-            image:undefined
+        resolver: zodResolver(postSchema),
+        defaultValues: {
+            title: '',
+            content: '',
+            image: undefined
         },
-        
     });
 
-    function onSubmit(values:z.infer<typeof postSchema>){
-        startTransition(async ()=>{
+    function onSubmit(values: z.infer<typeof postSchema>) {
+        startTransition(async () => {
             await createBlogAction(values)
         });
+    }
+
+    // Show loading state while checking auth
+    if (isLoading) {
+        return (
+            <div className='py-12'>
+                <div className='text-center'>
+                    <p className='text-muted-foreground'>Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // If not authenticated, return null (will redirect via useAuth)
+    if (!isAuthenticated) {
+        return null;
     }
 
   return (
@@ -56,40 +71,42 @@ function CreateRoute() {
             <CardContent>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <FieldGroup className='gap-y-4'>
-                        <Controller name='title' control={form.control} render={({field,fieldState})=>(
+                        <Controller name='title' control={form.control} render={({field, fieldState}) => (
                             <Field>
                                 <FieldLabel>
                                     Title
                                 </FieldLabel>
-                                <Input aria-invalid={fieldState.invalid} placeholder='Super cool title...'  {...field} />
+                                <Input aria-invalid={fieldState.invalid} placeholder='Super cool title...' {...field} />
                                 {fieldState.invalid && (
                                     <FieldError errors={[fieldState.error]}/>
                                 )}
                             </Field>
                         )} />
-                        <Controller name='content' control={form.control} render={({field,fieldState})=>(
+                        <Controller name='content' control={form.control} render={({field, fieldState}) => (
                             <Field>
                                 <FieldLabel>
                                     Content
                                 </FieldLabel>
-                                <Textarea aria-invalid={fieldState.invalid} placeholder='Super cool content...'  {...field} />
+                                <Textarea aria-invalid={fieldState.invalid} placeholder='Super cool content...' {...field} />
                                 {fieldState.invalid && (
                                     <FieldError errors={[fieldState.error]}/>
                                 )}
                             </Field>
                         )} />
-                        <Controller name='image' control={form.control} render={({field,fieldState})=>(
+                        <Controller name='image' control={form.control} render={({field, fieldState}) => (
                             <Field>
                                 <FieldLabel>
                                     Image
                                 </FieldLabel>
-                                <Input aria-invalid={fieldState.invalid} placeholder='Super cool content...'
-                                type="file"
-                                accept="image/*"
-                                onChange={(event)=>{
-                                    const file = event.target.files?.[0];
-                                    field.onChange(file)
-                                }}
+                                <Input 
+                                    aria-invalid={fieldState.invalid} 
+                                    placeholder='Super cool content...'
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(event) => {
+                                        const file = event.target.files?.[0];
+                                        field.onChange(file)
+                                    }}
                                 />
                                 {fieldState.invalid && (
                                     <FieldError errors={[fieldState.error]}/>

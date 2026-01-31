@@ -3,11 +3,25 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { fetchQuery } from 'convex/nextjs';
+import { isAuthenticated } from '@/lib/auth-server';
+import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-function BlogPage() {
+// Remove static caching to allow dynamic auth checks
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+async function checkAuth() {
+  const auth = await isAuthenticated();
+  if (!auth) {
+    redirect('/auth/login?callbackUrl=/blog');
+  }
+}
+
+async function BlogPage() {
+  await checkAuth();
 
   return (
     <div className='py-12'>
