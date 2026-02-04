@@ -33,7 +33,7 @@ function Navbar() {
     const router = useRouter()
 
     // Get user profile data from Convex
-    const userProfile = useQuery(api.posts.getUserProfile) as UserData | null | undefined
+    //const userProfile = useQuery(api.posts.getUserProfile) as UserData | null | undefined
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -147,26 +147,27 @@ function Navbar() {
                 <div className='flex items-center gap-3'>
                     <ThemeToggle />
                     
-                    {isAuthenticated && userProfile ? (
+                    {isAuthenticated  ? (
                         // User dropdown menu
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button className='flex items-center gap-2 p-1 rounded-full hover:bg-accent transition-colors'>
                                     <Avatar className='h-8 w-8'>
-                                        <AvatarImage src={userProfile.image || undefined} alt={userProfile.name || 'User'} />
+                                        {/*<AvatarImage src={userProfile.image || undefined} alt={userProfile.name || 'User'} />*/}
+                                        <AvatarImage src={undefined} alt={'User'} />
                                         <AvatarFallback className='text-xs'>
-                                            {userProfile.name?.slice(0, 2).toUpperCase() || 'U'}
+                                            {'U'}
                                         </AvatarFallback>
                                     </Avatar>
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align='end' className='w-56'>
-                                <DropdownMenuLabel>
+                                {/*<DropdownMenuLabel>
                                     <div className='flex flex-col space-y-1'>
                                         <p className='text-sm font-medium'>{userProfile.name || 'User'}</p>
                                         <p className='text-xs text-muted-foreground'>{userProfile.email}</p>
                                     </div>
-                                </DropdownMenuLabel>
+                                </DropdownMenuLabel>*/}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href="/profile" className='flex items-center cursor-pointer'>

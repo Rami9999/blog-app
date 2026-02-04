@@ -3,26 +3,23 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { fetchQuery } from 'convex/nextjs';
-import { isAuthenticated } from '@/lib/auth-server';
+import { fetchAuthQuery } from '@/lib/auth-server';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 
-// Remove static caching to allow dynamic auth checks
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const dynamic = 'force-static';
+export const revalidate = 30;
 
-async function checkAuth() {
-  const auth = await isAuthenticated();
-  if (!auth) {
-    redirect('/auth/login?callbackUrl=/blog');
-  }
+export const metadata:Metadata = {
+    title:"RumaBlog | Blog page",
+    description:"Read our latest articles and insights",
+    authors:[{name:"Rami Abo Ajeeb"}],
 }
 
 async function BlogPage() {
-  await checkAuth();
-
   return (
     <div className='py-12'>
         <div className='text-center pb-12'>
@@ -60,7 +57,7 @@ async function LoadBlogList(){
                     </div>
 
                     <CardContent>
-                        <Link href={`{/blog/${post._id}`} >
+                        <Link href={`/blog/${post._id}`} >
                             <h1 className='text-2xl font-bold hover:text-primary'>{post.title}</h1>
                         </Link>
                         <p className='text-muted-foreground line-clamp-3'>{post.body}</p>

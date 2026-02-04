@@ -4,14 +4,14 @@ import { Separator } from "@/components/ui/separator"
 import CommentSection from "@/components/web/commentSection"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
-import { getPostById } from "@/convex/posts"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { fetchQuery, preloadQuery } from "convex/nextjs"
-import { isAuthenticated } from "@/lib/auth-server"
+import { fetchAuthQuery, getToken } from "@/lib/auth-server"
 import { redirect } from "next/navigation"
 import { ArrowLeft, Ghost } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { Metadata } from "next"
+import PostPresence from "@/components/web/PostPresence"
 
 interface PostIdRouteProps{
     params: Promise<{
@@ -23,22 +23,38 @@ interface PostIdRouteProps{
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-async function checkAuth() {
-  const auth = await isAuthenticated();
-  if (!auth) {
-    redirect('/auth/login?callbackUrl=/blog');
-  }
+export async function generateMetaData({params}:PostIdRouteProps): Promise<Metadata>{
+    const {postId} = await params;
+    const post = await fetchQuery(api.posts.getPostById,{postId});
+    if(!post)
+    {
+        return {
+            title: "Post not found",
+        }
+    }
+
+    return {
+        title:post.title,
+        description:post.body
+    }
 }
 
 async function PostIdRoute({params}:PostIdRouteProps) {
-    await checkAuth();
-
     const {postId} = await params;
 
-    const [post,preLoadedCommnets] = await Promise.all([
+    const token = await getToken();
+
+    const [post,preLoadedCommnets,userId] = await Promise.all([
         await fetchQuery(api.posts.getPostById,{postId}),
-        await preloadQuery(api.comments.getCommentsByPostId,{postId})
+        await preloadQuery(api.comments.getCommentsByPostId,{postId}),
+        await fetchQuery(api.presence.getUserId,{},{token})
     ]);
+
+    console.log("user id: "+userId)
+    if(!userId)
+    {
+        return redirect("/auth/login")
+    }
 
     if(!post){
         return (
@@ -72,7 +88,10 @@ async function PostIdRoute({params}:PostIdRouteProps) {
 
         <div className="space-y-4 flex flex-col">
             <h1 className="text-4xl font-bold tracking-tight text-foreground">{post.title}</h1>
-            <p className="text-sm text-muted-foreground">Posted on: {new Date(post._creationTime).toLocaleDateString("en-US")}</p>
+            <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Posted on: {new Date(post._creationTime).toLocaleDateString("en-US")}</p>
+                {userId && <PostPresence roomId={post._id} userId={userId}/> }
+            </div>
         </div>
 
         <Separator  className="my-8"/>

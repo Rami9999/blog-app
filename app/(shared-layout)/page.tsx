@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, Users, Sparkles, Layers } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata:Metadata = {
+    title:"RumaBlog | Home page",
+    description:"Read our latest articles and insights",
+    authors:[{name:"Rami Abo Ajeeb"}],
+}
 
 export default function Home() {
   return (
